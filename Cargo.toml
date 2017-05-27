@@ -1,0 +1,12 @@
+[package]
+name = "bf"
+version = "0.1.0"
+authors = ["Adolph C. <adolph.celestin@gmail.com>"]
+
+[features]
+stats = []
+nooptim = []
+dverbose = [] # Verbose debug from the BF program.
+
+[dependencies]
+clap = "2.24.2"
