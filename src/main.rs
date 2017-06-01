@@ -1,6 +1,8 @@
 extern crate clap;
+extern crate llvm_sys as llvm;
 
 mod bf;
+mod bfllvm;
 
 use clap::{Arg, App};
 use std::fs::File;
@@ -34,6 +36,30 @@ fn open_file(filename: &str) -> File {
 
 fn as_millis(d: std::time::Duration) -> f64 {
 	(d.as_secs() as f64) * 1000.0f64 + (d.subsec_nanos() as f64) / 1000000f64
+}
+
+fn run_bf_program_llvm<R: Read+Sized>(input: R, show_debug: bool, show_timing: bool) {
+    println!("Using LLVM");
+    let mut program = bfllvm::BFLLVMProgram::new();
+    let compile_dur = time_op! { program.compile(input) };
+
+    if show_debug {
+        println!("LLVM IR:");
+        println!("==============");
+        program.dump_llvm_ir();
+        println!("==============");
+    }
+
+    if show_timing {
+        println!("Compiled In: {:.2}ms", as_millis(compile_dur));
+        println!("Running...");
+        println!();
+        let dur = time_op! { program.run() };
+        println!();
+        println!("Finished Running In: {:.2}ms", as_millis(dur));
+    } else {
+        program.run();
+    }
 }
 
 fn run_bf_program<R: Read+Sized>(input: R, show_debug: bool, show_timing: bool) {
@@ -90,6 +116,9 @@ fn main() {
         .arg(Arg::with_name("time")
             .short("t")
             .help("Print timing information."))
+        .arg(Arg::with_name("llvm")
+            .short("l")
+            .help("Use LLVM."))
         .arg(Arg::with_name("INPUT")
             .help("Sets the input file to use")
             .required(true)
@@ -99,6 +128,12 @@ fn main() {
     let input = matches.value_of("INPUT").unwrap();
     let show_debug = matches.is_present("debug");
     let show_timing = matches.is_present("time");
-    run_bf_program(open_file(input), show_debug, show_timing);
+    let llvm = matches.is_present("llvm");
+
+    if llvm {
+        run_bf_program_llvm(open_file(input), show_debug, show_timing);
+    } else {
+        run_bf_program(open_file(input), show_debug, show_timing);
+    }
     return;
 }

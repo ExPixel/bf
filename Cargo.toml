@@ -10,3 +10,4 @@ dverbose = [] # Verbose debug from the BF program.
 
 [dependencies]
 clap = "2.24.2"
+llvm-sys = "40"
